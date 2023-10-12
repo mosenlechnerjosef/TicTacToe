@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tic Tac Toe</title>
+    <style>
+        h1{
+            color: rgb(113, 165, 224);
+        }
+        body {
+            text-align: center;
+            background-color: bisque;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-gap: 5px;
+            margin: 20px auto;
+            width: 310px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            font-size: 24px;
+            text-align: center;
+            vertical-align: middle;
+            border: 2px solid rgb(113, 165, 224);
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Tic Tac Toe</h1>
+    <div class="board">
+        <div class="cell" onclick="makeMove(0, 0)"></div>
+        <div class="cell" onclick="makeMove(0, 1)"></div>
+        <div class="cell" onclick="makeMove(0, 2)"></div>
+        <div class="cell" onclick="makeMove(1, 0)"></div>
+        <div class="cell" onclick="makeMove(1, 1)"></div>
+        <div class="cell" onclick="makeMove(1, 2)"></div>
+        <div class="cell" onclick="makeMove(2, 0)"></div>
+        <div class="cell" onclick="makeMove(2, 1)"></div>
+        <div class="cell" onclick="makeMove(2, 2)"></div>
+    </div>
+    <div id="message"></div>
+    <button onclick="resetGame()">Reset</button>
+
+    <script>
+        let currentPlayer = 'X';
+        let board = [
+            ['', '', ''],
+            ['', '', ''],
+            ['', '', '']
+        ];
+
+        const message = document.getElementById('message');
+
+        function makeMove(row, col) {
+            if (board[row][col] === '' && !isGameOver()) {
+                board[row][col] = currentPlayer;
+                document.querySelector(`.board .cell:nth-child(${row * 3 + col + 1})`).innerText = currentPlayer;
+                if (isWinner(currentPlayer)) {
+                    message.innerText = `Player ${currentPlayer} wins!`;
+                } else if (isBoardFull()) {
+                    message.innerText = "It's a draw!";
+                } else {
+                    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                    if (currentPlayer === 'O') {
+                        computerMove();
+                    }
+                }
+            }
+        }
+
+        function isWinner(player) {
+            for (let i = 0; i < 3; i++) {
+                if (
+                    (board[i][0] === player && board[i][1] === player && board[i][2] === player) ||
+                    (board[0][i] === player && board[1][i] === player && board[2][i] === player) ||
+                    (board[0][0] === player && board[1][1] === player && board[2][2] === player) ||
+                    (board[0][2] === player && board[1][1] === player && board[2][0] === player)
+                ) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function isBoardFull() {
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 3; col++) {
+                    if (board[row][col] === '') {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function isGameOver() {
+            return isWinner('X') || isWinner('O') || isBoardFull();
+        }
+
+        function resetGame() {
+            board = [
+                ['', '', ''],
+                ['', '', ''],
+                ['', '', '']
+            ];
+            currentPlayer = 'X';
+            document.querySelectorAll('.board .cell').forEach(cell => cell.innerText = '');
+            message.innerText = '';
+        }
+
+        function computerMove() {
+            const bestMove = findBestMove(board);
+            if (bestMove) {
+                const { row, col } = bestMove;
+                makeMove(row, col);
+            }
+        }
+
+        function findBestMove(board) {
+            let bestMove = null;
+            let bestScore = -Infinity;
+
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 3; col++) {
+                    if (board[row][col] === '') {
+                        board[row][col] = 'O';
+                        const score = minimax(board, 0, false);
+                        board[row][col] = '';
+
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestMove = { row, col };
+                        }
+                    }
+                }
+            }
+
+            return bestMove;
+        }
+
+        const scores = {
+            X: -1,
+            O: 1,
+            draw: 0,
+        };
+
+        function minimax(board, depth, isMaximizing) {
+            if (isWinner('X')) {
+                return scores.X;
+            }
+            if (isWinner('O')) {
+                return scores.O;
+            }
+            if (isBoardFull()) {
+                return scores.draw;
+            }
+
+            if (isMaximizing) {
+                let bestScore = -Infinity;
+                for (let row = 0; row < 3; row++) {
+                    for (let col = 0; col < 3; col++) {
+                        if (board[row][col] === '') {
+                            board[row][col] = 'O';
+                            const score = minimax(board, depth + 1, false);
+                            board[row][col] = '';
+                            bestScore = Math.max(score, bestScore);
+                        }
+                    }
+                }
+                return bestScore;
+            } else {
+                let bestScore = Infinity;
+                for (let row = 0; row < 3; row++) {
+                    for (let col = 0; col < 3; col++) {
+                        if (board[row][col] === '') {
+                            board[row][col] = 'X';
+                            const score = minimax(board, depth + 1, true);
+                            board[row][col] = '';
+                            bestScore = Math.min(score, bestScore);
+                        }
+                    }
+                }
+                return bestScore;
+            }
+        }
+    </script>
+</body>
+</html>
